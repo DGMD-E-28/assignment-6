@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Wordle Redux</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <style>
+        .row { display: flex; margin: 5px; }
+        .tile {
+            width: 40px; height: 40px; border: 2px solid #ccc;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 24px;
+        }
+        .correct { background: green; color: white; }
+        .present { background: goldenrod; color: white; }
+        .absent { background: gray; color: white; }
+        .keyboard-row { display: flex; justify-content: center; margin-top: 10px; }
+        .key { padding: 8px 10px; margin: 2px; border: 1px solid #333; font-size: 16px; }
+    </style>
+</head>
+<body>
+<div id="myapp"></div>
+<script>
+    const answer = "moody";
+    const guesses = ["might", "flood", "stray"];
+
+    function getResult(guess, answer) {
+        const result = [];
+        const answerArr = answer.split("");
+        const guessArr = guess.split("");
+
+        for (let i = 0; i < 5; i++) {
+            if (guessArr[i] === answerArr[i]) {
+                result[i] = "correct";
+                answerArr[i] = null;
+            }
+        }
+
+        for (let i = 0; i < 5; i++) {
+            if (!result[i]) {
+                const idx = answerArr.indexOf(guessArr[i]);
+                if (idx !== -1) {
+                    result[i] = "present";
+                    answerArr[idx] = null;
+                } else {
+                    result[i] = "absent";
+                }
+            }
+        }
+
+        return result;
+    }
+
+    function Tile(props) {
+        return React.createElement("div", { className: `tile ${props.status}` }, props.letter);
+    }
+
+    function Row(props) {
+        const result = getResult(props.word, answer);
+        const tiles = props.word.split("").map((letter, i) =>
+            React.createElement(Tile, { key: i, letter: letter, status: result[i] })
+        );
+        return React.createElement("div", { className: "row" }, tiles);
+    }
+
+    function Board() {
+        const rows = [];
+        for (let i = 0; i < 6; i++) {
+            if (i < guesses.length) {
+                rows.push(React.createElement(Row, { key: i, word: guesses[i] }));
+            } else {
+                rows.push(React.createElement("div", { key: i, className: "row" },
+                    Array(5).fill("").map((_, j) => React.createElement(Tile, { key: j, letter: "", status: "" }))
+                ));
+            }
+        }
+        return React.createElement("div", null, rows);
+    }
+
+    function Keyboard() {
+        const layout = [
+            "QWERTYUIOP".split(""),
+            "ASDFGHJKL".split(""),
+            "ZXCVBNM".split("")
+        ];
+
+        return React.createElement("div", null,
+            layout.map((row, i) =>
+                React.createElement("div", { key: i, className: "keyboard-row" },
+                    row.map((key, j) =>
+                        React.createElement("div", { key: j, className: "key" }, key)
+                    )
+                )
+            )
+        );
+    }
+
+    function App() {
+        return React.createElement("div", null,
+            React.createElement(Board),
+            React.createElement(Keyboard)
+        );
+    }
+
+    ReactDOM.render(React.createElement(App), document.getElementById("myapp"));
+</script>
+</body>
+</html>
