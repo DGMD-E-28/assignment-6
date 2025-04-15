@@ -1,5 +1,6 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<!--suppress HtmlRequiredLangAttribute -->
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,21 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 </head>
 <body>
+<header>
+    <div class="nav-bar">
+
+        <a href="index.html">
+            <img src="assets/default.png" alt="Wordle" class="logo">
+        </a>
+        <!-- Theme Switch Container -->
+        <div class="theme-container">
+            <span id="theme-icon">🌞</span>
+            <div class="theme-switch">
+                <label for="theme-toggle"></label><input type="range" id="theme-toggle" min="0" max="2" step="1" value="0">
+            </div>
+        </div>
+    </div>
+</header>
 <div id="myapp"></div>
 <script>
     const answer = "moody";
@@ -43,6 +59,22 @@
         return result;
     }
 
+    function getKeyStatuses(guesses, answer) {
+        const statusMap = {};
+        for (const word of guesses) {
+            const result = getResult(word, answer);
+            for (let i = 0; i < word.length; i++) {
+                const letter = word[i].toUpperCase();
+                const status = result[i];
+                const current = statusMap[letter];
+                if (current === "correct") continue;
+                if (current === "present" && status === "absent") continue;
+                statusMap[letter] = status;
+            }
+        }
+        return statusMap;
+    }
+
     function Tile(props) {
         return React.createElement("div", { className: `tile ${props.status}` }, props.letter);
     }
@@ -69,7 +101,7 @@
         return React.createElement("div", null, rows);
     }
 
-    function Keyboard() {
+    function Keyboard(props) {
         const layout = [
             "QWERTYUIOP".split(""),
             "ASDFGHJKL".split(""),
@@ -79,22 +111,45 @@
         return React.createElement("div", null,
             layout.map((row, i) =>
                 React.createElement("div", { key: i, className: "keyboard-row" },
-                    row.map((key, j) =>
-                        React.createElement("div", { key: j, className: "key" }, key)
-                    )
+                    row.map((key, j) => {
+                        const status = props.keyStatuses[key];
+                        const keyClass = status ? `key ${status}` : "key";
+                        return React.createElement("div", { key: j, className: keyClass }, key);
+                    })
                 )
             )
         );
     }
 
     function App() {
+        const keyStatuses = getKeyStatuses(guesses, answer);
         return React.createElement("div", null,
             React.createElement(Board),
-            React.createElement(Keyboard)
+            React.createElement(Keyboard, { keyStatuses: keyStatuses })
         );
     }
 
     ReactDOM.render(React.createElement(App), document.getElementById("myapp"));
+</script>
+<script>
+    const toggle = document.getElementById("theme-toggle");
+    const icon = document.getElementById("theme-icon");
+
+    toggle.addEventListener("input", () => {
+        const value = parseInt(toggle.value);
+
+        document.body.classList.remove("dark-mode", "harvard-mode");
+
+        if (value === 0) {
+            icon.textContent = "🌞"; // Light mode
+        } else if (value === 1) {
+            document.body.classList.add("dark-mode");
+            icon.textContent = "🌙"; // Dark mode
+        } else if (value === 2) {
+            document.body.classList.add("harvard-mode");
+            icon.innerHTML = `<img src="./assets/harvard.png" alt="Harvard" class="harvard-icon">`;
+        }
+    });
 </script>
 </body>
 </html>

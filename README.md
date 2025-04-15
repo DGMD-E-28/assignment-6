@@ -46,7 +46,7 @@ Technologies used:
 
 ## 🚀 Deliverables
 
-- `wordle_redux.html`
+- `index.html`
 
 ---
 
